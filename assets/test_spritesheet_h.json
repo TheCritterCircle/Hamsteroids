@@ -1,0 +1,20 @@
+{"frames": {
+
+"Bunny_Blue_IG_Large.png":
+{
+	"frame": {"x":1,"y":1,"w":448,"h":622},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":448,"h":622},
+	"sourceSize": {"w":448,"h":622}
+}},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "test_spritesheet_h.png",
+	"format": "RGBA8888",
+	"size": {"w":450,"h":624},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:4ee11195a72cce186be63f35077c3fb2:ae314a77c0ed2227f130b429802af2b2:2a6b40417974cfb2a02dff161a4fe8dd$"
+}
+}

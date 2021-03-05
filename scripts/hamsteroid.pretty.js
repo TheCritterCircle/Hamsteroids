@@ -13,10 +13,17 @@
 */
 const Hamsteroids = (function() {
 	/**
-		Boot function to start the game
+		Function to initiate the booter
+	*/
+	this.init = _=> {
+		this.booter = new Booter();
+	}
+	/**
+		Function to start creating
+		the canvas and preloading assets
 	*/
 	this.boot = _=> {
-		this.gameBooter = new Booter();
+		this.booter.setupCanvas();
 	}
 
 	/**
@@ -26,25 +33,153 @@ const Hamsteroids = (function() {
 		//
 	}
 
-	const CONSTANTS = class {
+	const Constants = class {
 		static GAME_DEV_NAME = 'Hamsteroids';
 		static GAME_VERSION = '1.0';
 
 		static DEBUG = true;
+
+		static DEFAULT_PATH = './';
+		static DEFAULT_LANGUAGE = 'en';
+
+		static GAME_WIDTH = 375;
+		static GAME_HEIGHT = 667;
+
+		static GAME_ASSETS = [
+			{key: 'test_spritesheet_h', directory: './assets/test_spritesheet_h.json'}
+		];
 	}
 
 	const Booter = class {
 		constructor() {
-			this.stage;
+			this.canvas;
 			this.context;
+			this.pixiApp;
+			this.stage;
 
-			Logger.log(`${CONSTANTS.GAME_DEV_NAME} - v${CONSTANTS.GAME_VERSION}`);
+			this.gameAssetsPath = null;
+			this.gameLanguage = null;
+
+			Logger.log(`${Constants.GAME_DEV_NAME} - v${Constants.GAME_VERSION}`);
+		}
+
+		setupCanvas() {
+			/**
+				Setup PixiJS
+			*/
+			this.createPixiApp();
+			this.preloadAssets();
+		}
+
+		createPixiApp() {
+			this.canvas = document.getElementById('game_canvas');
+			this.pixiApp = new PIXI.Application({
+				view: this.canvas,
+				width: Constants.GAME_WIDTH,
+				height: Constants.GAME_HEIGHT,
+				antialias: true,
+				backgroundColor: 0xd9b2d2
+			});
+
+			this.loader = PIXI.Loader.shared;
+
+			this.stage = new PIXI.Container();
+			this.pixiApp.ticker.add(this.updateLoop.bind(this));
+		}
+
+		/**
+			Preload the game assets
+			(sprite sheets, audio)
+		*/
+		preloadAssets() {
+			const files = Constants.GAME_ASSETS;
+
+			for(const file of files) {
+				this.loader.add(file.key, file.directory);
+			}
+
+			this.loader.onProgress.add(this.onFileProgress.bind(this));
+			this.loader.onError.add(this.onFileError.bind(this));
+			//this.loader.onComplete.add(this.onFilesComplete.bind(this));
+
+			this.loader.load(this.onFilesComplete.bind(this));
+		}
+
+		onFileProgress(event) {
+			Logger.log(`Loading ${event.progress}%`);
+		}
+
+		onFileError(event) {
+			Logger.log('Error loading files');
+		}
+
+		onFilesComplete() {
+			Logger.log('loaded')
+
+			this.testRender();
+		}
+
+		testRender() {
+			/**
+				Test PixiJS' rendering (temporary)
+			*/
+			const spritesheet = this.loader.resources['test_spritesheet_h'].spritesheet;
+			
+			this.critterTest = new PIXI.Sprite(
+				spritesheet.textures['Bunny_Blue_IG_Large.png']
+			);
+
+			this.critterTest.anchor.set(.5, .6);
+			this.critterTest.x = Constants.GAME_WIDTH / 2;
+			this.critterTest.y = Constants.GAME_HEIGHT / 2;
+
+			this.critterTest.scale.set(.4);
+
+			this.pixiApp.stage.addChild(this.critterTest);
+		}
+
+		updateLoop(delta) {
+			// Game loop
+
+			if(this.critterTest) {
+				this.critterTest.rotation += 0.02;
+			}
+		}
+
+		set language(languageString) {
+			this.gameLanguage = String(languageString);
+
+			return this.gameLanguage;
+		}
+
+		set assetsPath(pathString) {
+			this.gameAssetsPath = String(pathString);
+
+			return this.gameAssetsPath;
+		}
+
+		get language() {
+			if(this.gameLanguage == null)
+				return Constants.DEFAULT_PATH;
+
+			return this.gameLanguage;
+		}
+
+		get path() {
+			if(this.gameAssetsPath == null)
+				return Constants.DEFAULT_LANGUAGE;
+
+			return this.gameAssetsPath;
 		}
 	}
 
+	const TitleScreen = class {
+		//
+	}
+
 	const Logger = class {
-		static log(msg) {
-			if(!CONSTANTS.DEBUG)
+		static log() {
+			if(!Constants.DEBUG)
 				return;
 
 			console.log(...arguments);
@@ -57,34 +192,39 @@ const Hamsteroids = (function() {
 	to setup the game.
 */
 let bootGame,
-	setGamePath,
+	setgameAssetsPath,
 	setGameLanguage,
 	destroyGame;
 
 /**
-	The 'game' variable (initiated "Hamsteroids" object) *cannot* be
+	The '_game' variable (initiated "Hamsteroids" object) *cannot* be
 	accessed outside of the initGame function scope (hopefully).
 */
 function initGame() {
-	const game = new Hamsteroids();
+	const _game = new Hamsteroids();
+	_game.init();
 
 	bootGame = _=> {
-		game.boot();
+		_game.boot();
 	}
 
-	setGamePath = _=> {
+	setgameAssetsPath = (path) => {
 		// Set directory
+
+		_game.booter.assetsPath = path;
 	}
 
-	setGameLanguage = _=> {
-		// Set language of game (en)
+	setGameLanguage = (language) => {
+		// Set language of game
+
+		_game.booter.language = language;
 	}
 
 	destroyGame = _=> {
-		game.destroy();
+		_game.destroy();
 	}
 
-	setGamePath('./');
+	setgameAssetsPath('./assets/');
 	setGameLanguage('en');
 	bootGame();
 }

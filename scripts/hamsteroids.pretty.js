@@ -100,7 +100,6 @@ const Hamsteroids = (function() {
 
 			this.loader.onProgress.add(this.onFileProgress.bind(this));
 			this.loader.onError.add(this.onFileError.bind(this));
-			//this.loader.onComplete.add(this.onFilesComplete.bind(this));
 
 			this.loader.load(this.onFilesComplete.bind(this));
 		}

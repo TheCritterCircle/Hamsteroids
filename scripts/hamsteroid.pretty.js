@@ -192,7 +192,7 @@ const Hamsteroids = (function() {
 	to setup the game.
 */
 let bootGame,
-	setgameAssetsPath,
+	setGameAssetsPath,
 	setGameLanguage,
 	destroyGame;
 
@@ -208,7 +208,7 @@ function initGame() {
 		_game.boot();
 	}
 
-	setgameAssetsPath = (path) => {
+	setGameAssetsPath = (path) => {
 		// Set directory
 
 		_game.booter.assetsPath = path;
@@ -224,7 +224,7 @@ function initGame() {
 		_game.destroy();
 	}
 
-	setgameAssetsPath('./assets/');
+	setGameAssetsPath('./assets/');
 	setGameLanguage('en');
 	bootGame();
 }

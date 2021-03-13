@@ -46,7 +46,7 @@ const Hamsteroids = (function() {
 		static GAME_HEIGHT = 667;
 
 		static GAME_ASSETS = [
-			{key: 'test_spritesheet_h', directory: './assets/test_spritesheet_h.json'}
+			{key: 'test_spritesheet_h', directory: 'hamsteroids_spritesheet_test-0.json'}
 		];
 	}
 
@@ -69,6 +69,9 @@ const Hamsteroids = (function() {
 			*/
 			this.createPixiApp();
 			this.preloadAssets();
+
+			// Make TweenJS use requestAnimationFrame
+			createjs.Ticker.timingMode = createjs.Ticker.RAF;
 		}
 
 		createPixiApp() {
@@ -81,7 +84,7 @@ const Hamsteroids = (function() {
 				backgroundColor: 0xd9b2d2
 			});
 
-			this.loader = PIXI.Loader.shared;
+			this.loader = new SOLUS.Loader(this.path);
 
 			this.stage = new PIXI.Container();
 			this.pixiApp.ticker.add(this.updateLoop.bind(this));
@@ -94,27 +97,22 @@ const Hamsteroids = (function() {
 		preloadAssets() {
 			const files = Constants.GAME_ASSETS;
 
-			for(const file of files) {
-				this.loader.add(file.key, file.directory);
-			}
-
-			this.loader.onProgress.add(this.onFileProgress.bind(this));
-			this.loader.onError.add(this.onFileError.bind(this));
-
-			this.loader.load(this.onFilesComplete.bind(this));
+			this.loader.add(files);
+			this.loader.on('progress', this.onFileProgress.bind(this));
+			this.loader.on('error', this.onFileError.bind(this));
+			this.loader.on('complete', this.onFilesComplete.bind(this));
+			this.loader.load();
 		}
 
 		onFileProgress(event) {
-			Logger.log(`Loading ${event.progress}%`);
+			Logger.log(`Loading ${Math.floor(event.progress)}%`);
 		}
 
 		onFileError(event) {
 			Logger.log('Error loading files');
 		}
 
-		onFilesComplete() {
-			Logger.log('loaded')
-
+		onFilesComplete(loader, resources) {
 			this.testRender();
 		}
 
@@ -122,27 +120,30 @@ const Hamsteroids = (function() {
 			/**
 				Test PixiJS' rendering (temporary)
 			*/
-			const spritesheet = this.loader.resources['test_spritesheet_h'].spritesheet;
-			
-			this.critterTest = new PIXI.Sprite(
-				spritesheet.textures['Bunny_Blue_IG_Large.png']
-			);
+			this.critter = SOLUS.Sprite.create('test_spritesheet_h', 'Ufo_pink_IG_large.png');
+			this.critter.anchor.set(.5);
+			this.critter.scale.set(.4);
+			this.critter.x = Constants.GAME_WIDTH / 2;
+			this.critter.y = Constants.GAME_HEIGHT / 2;
 
-			this.critterTest.anchor.set(.5, .6);
-			this.critterTest.x = Constants.GAME_WIDTH / 2;
-			this.critterTest.y = Constants.GAME_HEIGHT / 2;
+			this.pixiApp.stage.addChild(this.critter);
 
-			this.critterTest.scale.set(.4);
+			setInterval(_=> {
+				this.critter.changeTexture('test_spritesheet_h', 'Super_Cape_Red_IG_Large.png');
+			}, 3000);
 
-			this.pixiApp.stage.addChild(this.critterTest);
+			setInterval(_=> {
+				this.critter.changeTexture('test_spritesheet_h', 'Ufo_pink_IG_large.png');
+			}, 3000 * 2);
+
+			// A temp hover tween :)
+			createjs.Tween.get(this.critter, {loop: -1})
+				.to({y: 240}, 1000, createjs.Ease.backInOut)
+				.to({y: Constants.GAME_HEIGHT / 2}, 1000, createjs.Ease.backInOut);
 		}
 
 		updateLoop(delta) {
 			// Game loop
-
-			if(this.critterTest) {
-				this.critterTest.rotation += 0.02;
-			}
 		}
 
 		set language(languageString) {

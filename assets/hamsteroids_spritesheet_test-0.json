@@ -1,0 +1,36 @@
+{"frames": {
+
+"Chocolate_bar_IG.png":
+{
+	"frame": {"x":511,"y":576,"w":218,"h":324},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":60,"y":43,"w":218,"h":324},
+	"sourceSize": {"w":340,"h":400}
+},
+"Super_Cape_Red_IG_Large.png":
+{
+	"frame": {"x":1,"y":576,"w":429,"h":508},
+	"rotated": true,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":429,"h":508},
+	"sourceSize": {"w":429,"h":508}
+},
+"Ufo_pink_IG_large.png":
+{
+	"frame": {"x":1,"y":1,"w":661,"h":573},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":661,"h":573},
+	"sourceSize": {"w":661,"h":573}
+}},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "hamsteroids_spritesheet_test-0.png",
+	"format": "RGBA8888",
+	"size": {"w":730,"h":1006},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:f0f4a10d9fefc706fbee723e86b8db2a:bac815166a9ecbe55b4a04483bcf9f41:620fe33780f8f8ba8ef9c2e65fe1c945$"
+}
+}

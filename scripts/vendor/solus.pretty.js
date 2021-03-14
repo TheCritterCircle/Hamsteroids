@@ -29,6 +29,7 @@ const SOLUS = new (function() {
 		this.Loader = Loader;
 		this.Sprite = new SpriteHelper();
 		this.SpriteHelper = this.Sprite;
+		this.SceneManager = SceneManager;
 	}
 
 	/**
@@ -204,9 +205,9 @@ const SOLUS = new (function() {
 			this.sprites = [];
 		}
 
-		create(spritesheetName, frameName) {
-			const texture = this.getTextureBySpritesheet(spritesheetName, frameName);
-			const sprite = new SpriteInstance(this, texture);
+		create(spritesheetName, textureName) {
+			const texture = this.getTextureBySpritesheet(spritesheetName, textureName);
+			const sprite = new SpriteInstance(this, texture, textureName);
 
 			this.addSprite(sprite);
 
@@ -246,23 +247,26 @@ const SOLUS = new (function() {
 			return spritesheet;
 		}
 
-		getTextureBySpritesheet(spritesheetName, frameName) {
+		getTextureBySpritesheet(spritesheetName, textureName) {
 			const spritesheet = this.getSpritesheetByName(spritesheetName);
-			const texture = spritesheet.textures[frameName];
+			const texture = spritesheet.textures[textureName];
 
 			return texture;
 		}
 	}
 
 	const SpriteInstance = class extends PIXI.Sprite {
-		constructor(parent, texture) {
+		constructor(parent, texture, textureName) {
 			super(texture);
 
 			this.spriteHelper = parent;
+			this.textureName = textureName;
 		}
 
-		changeTexture(spritesheetName, frameName) {
-			const texture = SOLUS.Sprite.getTextureBySpritesheet(spritesheetName, frameName);
+		changeTexture(spritesheetName, textureName) {
+			const texture = SOLUS.Sprite.getTextureBySpritesheet(spritesheetName, textureName);
+
+			this.textureName = textureName;
 
 			if(texture) 
 				this.texture = texture;
@@ -272,6 +276,71 @@ const SOLUS = new (function() {
 	const AnimationHelper = class {
 		constructor() {
 			//
+		}
+	}
+
+	const SceneManager = class {
+		constructor(parent) {
+			this.booter = parent;
+			this.scenes = {};
+
+			// Each scene class extends PIXI.Container
+			// and must have core functions
+			// (setup, destroy)
+			// update function is optional
+		}
+
+		create(sceneKey, sceneClass, sceneOptions) {
+			Logger.verbose(`SceneManager.create() ${sceneKey}`);
+
+			if(this.checkSceneExists(sceneKey))
+				return Logger.error(`Scene '${sceneKey} already exists`);
+			
+			if(typeof sceneClass !== 'function')
+				return Logger.error(`Scene '${sceneKey}' has an invalid class/function`);
+			
+			const {autoStart} = sceneOptions;
+		
+			const scene = this.scenes[sceneKey] = new sceneClass();
+			scene.sceneOptions = sceneOptions;
+			scene.sceneManager = this;
+			scene.active = false;
+			
+			if(autoStart)
+				this.launch(sceneKey);
+
+			// Might have to change this in the future
+			this.booter.pixiApp.stage.addChild(scene);
+		}
+
+		launch(sceneKey) {
+			if(!this.checkSceneExists(sceneKey))
+				return Logger.error(`Scene '${sceneKey} does not exist`);
+
+			const scene = this.findSceneByKey(sceneKey);
+			scene.setup();
+			scene.active = true;
+		}
+
+		update(delta) {
+			Object.values(this.scenes).forEach(scene => {
+				if(scene.active && scene.update) {
+					scene.update(delta);
+				}
+			});
+		}
+
+		destroy(scene) {
+			scene.active = false;
+			this.booter.pixiApp.stage.removeChild(scene);
+		}
+
+		findSceneByKey(sceneKey) {
+			return this.scenes[String(sceneKey)];
+		}
+
+		checkSceneExists(sceneKey) {
+			return this.findSceneByKey(sceneKey) !== undefined;
 		}
 	}
 

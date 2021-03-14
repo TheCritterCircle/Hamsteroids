@@ -85,9 +85,22 @@ const Hamsteroids = (function() {
 			});
 
 			this.loader = new SOLUS.Loader(this.path);
+			this.sceneManager = new SOLUS.SceneManager(this);
 
 			this.stage = new PIXI.Container();
 			this.pixiApp.ticker.add(this.updateLoop.bind(this));
+		}
+
+		createGameScenes() {
+			this.sceneManager.create('title_screen', TitleScreen, {
+				booter: this,
+				autoStart: true
+			});
+
+			this.sceneManager.create('test_render', TestRender, {
+				booter: this,
+				autoStart: false
+			});
 		}
 
 		/**
@@ -113,37 +126,14 @@ const Hamsteroids = (function() {
 		}
 
 		onFilesComplete(loader, resources) {
-			this.testRender();
-		}
-
-		testRender() {
-			/**
-				Test PixiJS' rendering (temporary)
-			*/
-			this.critter = SOLUS.Sprite.create('test_spritesheet_h', 'Ufo_pink_IG_large.png');
-			this.critter.anchor.set(.5);
-			this.critter.scale.set(.4);
-			this.critter.x = Constants.GAME_WIDTH / 2;
-			this.critter.y = Constants.GAME_HEIGHT / 2;
-
-			this.pixiApp.stage.addChild(this.critter);
-
-			setInterval(_=> {
-				this.critter.changeTexture('test_spritesheet_h', 'Super_Cape_Red_IG_Large.png');
-			}, 3000);
-
-			setInterval(_=> {
-				this.critter.changeTexture('test_spritesheet_h', 'Ufo_pink_IG_large.png');
-			}, 3000 * 2);
-
-			// A temp hover tween :)
-			createjs.Tween.get(this.critter, {loop: -1})
-				.to({y: 240}, 1000, createjs.Ease.backInOut)
-				.to({y: Constants.GAME_HEIGHT / 2}, 1000, createjs.Ease.backInOut);
+			this.createGameScenes();
+			//this.testRender();
 		}
 
 		updateLoop(delta) {
 			// Game loop
+
+			this.sceneManager.update(delta);
 		}
 
 		set language(languageString) {
@@ -173,8 +163,99 @@ const Hamsteroids = (function() {
 		}
 	}
 
-	const TitleScreen = class {
-		//
+	const TitleScreen = class extends PIXI.Container {
+		constructor() {
+			super();
+
+			Logger.log('constructor');
+		}
+
+		setup() {
+			Logger.log('setup');
+
+			this.booter = this.sceneOptions.booter;
+
+			this.display();
+		}
+
+		display() {
+			const textStyle = new PIXI.TextStyle({
+				fill: 'white',
+				fontSize: 30,
+				align: 'center'
+			});
+
+			const text = new PIXI.Text('Click here!', textStyle);
+			text.anchor.set(.5);
+			text.x = Constants.GAME_WIDTH / 2;
+			text.y = Constants.GAME_HEIGHT / 2;
+
+			const buttonRect = new PIXI.Graphics();
+			buttonRect.beginFill(0x541585);
+			buttonRect.drawRect(0, 0, text.width * 1.2, 60);
+			buttonRect.x = text.x - ((text.width * 1.2) / 2);
+			buttonRect.y = text.y - (buttonRect.height / 2);
+
+			buttonRect.interactive = true;
+			buttonRect.buttonMode = true;
+			buttonRect.on('pointerup', this.goToGameScene.bind(this));
+
+			this.addChild(buttonRect, text);
+		}
+
+		goToGameScene() {
+			this.sceneManager.launch('test_render');
+			this.destroy();
+		}
+
+		destroy() {
+			Logger.log('destroy');
+
+			this.sceneManager.destroy(this);
+		}
+	}
+
+	const TestRender = class extends PIXI.Container {
+		constructor() {
+			super();
+		}
+
+		setup() {
+			Logger.log('setup');
+
+			this.booter = this.sceneOptions.booter;
+
+			this.display();
+		}
+
+		display() {
+			/**
+				Test PixiJS' rendering (temporary)
+			*/
+			this.critter = SOLUS.Sprite.create('test_spritesheet_h', 'Ufo_pink_IG_large.png');
+			this.critter.anchor.set(.5);
+			this.critter.scale.set(.4);
+			this.critter.x = Constants.GAME_WIDTH / 2;
+			this.critter.y = Constants.GAME_HEIGHT / 2;
+
+			this.booter.pixiApp.stage.addChild(this.critter);
+
+			setInterval(_=> {
+				const newTexture = this.critter.textureName == 'Super_Cape_Red_IG_Large.png'
+						? 'Ufo_pink_IG_large.png' : 'Super_Cape_Red_IG_Large.png';
+
+				this.critter.changeTexture('test_spritesheet_h', newTexture);
+			}, 3000);
+
+			// A temp hover tween :)
+			createjs.Tween.get(this.critter, {loop: -1})
+				.to({y: 240}, 1000, createjs.Ease.backInOut)
+				.to({y: Constants.GAME_HEIGHT / 2}, 1000, createjs.Ease.backInOut);
+		}
+
+		destroy() {
+			//
+		}
 	}
 
 	const Logger = class {
